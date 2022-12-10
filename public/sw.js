@@ -1,7 +1,10 @@
+let CACHE_STATIC_NAME = 'static-v1';
+let CACHE_DYNAMIC_NAME = 'dynamic-v1';
+
 self.addEventListener('install', (e) => {
   console.log('[SW] Installing event');
   e.waitUntil(
-    caches.open('static').then((cache) => {
+    caches.open(CACHE_STATIC_NAME).then((cache) => {
       console.log('[SW] Pre-caching');
       cache.addAll([
         '/',
@@ -22,6 +25,18 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   console.log('[SW] Activating event');
+  e.waitUntil(
+    caches.keys().then((keysList) =>
+      Promise.all(
+        keysList.map((key) => {
+          if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
+            console.log('[SW] Removing old cache');
+            return caches.delete(key);
+          }
+        })
+      )
+    )
+  );
   return self.clients.claim();
 });
 
@@ -33,7 +48,7 @@ self.addEventListener('fetch', (e) => {
       } else {
         return fetch(e.request)
           .then((res) => {
-            caches.open('dynamic').then((cache) => {
+            caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
               cache.put(e.request.url, res.clone());
               return res;
             });
