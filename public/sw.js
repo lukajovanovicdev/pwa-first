@@ -1,5 +1,5 @@
-let CACHE_STATIC_NAME = 'static-v4';
-let CACHE_DYNAMIC_NAME = 'dynamic-v1';
+let CACHE_STATIC_NAME = 'static-v1';
+let CACHE_DYNAMIC_NAME = 'dynamic-v2';
 
 self.addEventListener('install', (e) => {
   console.log('[SW] Installing event');
@@ -41,26 +41,39 @@ self.addEventListener('activate', (e) => {
   return self.clients.claim();
 });
 
+// Cache then Network & dynamic caching
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((response) => {
-      if (response) {
-        return response;
-      } else {
-        return fetch(e.request)
-          .then((res) => {
-            caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
-              cache.put(e.request.url, res.clone());
-              return res;
-            });
-          })
-          .catch((error) => {
-            return caches.open(CACHE_STATIC_NAME).then((cache) => cache.match('/offline.html'));
-          });
-      }
-    })
+    caches.open(CACHE_DYNAMIC_NAME).then((cache) =>
+      fetch(e.request).then((res) => {
+        cache.put(e.request, res.clone());
+        return res;
+      })
+    )
   );
 });
+
+// Cache first then network
+// self.addEventListener('fetch', (e) => {
+//   e.respondWith(
+//     caches.match(e.request).then((response) => {
+//       if (response) {
+//         return response;
+//       } else {
+//         return fetch(e.request)
+//           .then((res) => {
+//             caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
+//               cache.put(e.request.url, res.clone());
+//               return res;
+//             });
+//           })
+//           .catch((error) => {
+//             return caches.open(CACHE_STATIC_NAME).then((cache) => cache.match('/offline.html'));
+//           });
+//       }
+//     })
+//   );
+// });
 
 // Cache only
 // self.addEventListener('fetch', (e) => {
