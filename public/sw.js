@@ -61,3 +61,8 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+
+// Cache only
+// self.addEventListener('fetch', (e) => {
+//   e.respondWith(caches.match(e.request));
+// });
