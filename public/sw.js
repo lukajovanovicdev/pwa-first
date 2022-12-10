@@ -71,3 +71,17 @@ self.addEventListener('fetch', (e) => {
 // self.addEventListener('fetch', (e) => {
 //   e.respondWith(fetch(e.request));
 // });
+
+// Network with Cache fallback
+// self.addEventListener('fetch', (e) => {
+//   e.respondWith(
+//     fetch(e.request)
+//       .then((res) =>
+//         caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
+//           cache.put(e.request.url, res.clone());
+//           return res;
+//         })
+//       )
+//       .catch((err) => caches.match(e.request))
+//   );
+// });
