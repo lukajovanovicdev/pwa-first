@@ -69,11 +69,14 @@ self.addEventListener('fetch', (e) => {
       fetch(e.request).then((res) => {
         // trimCache(CACHE_DYNAMIC_NAME, 3);
         const clonedRes = res.clone();
-        clonedRes.json().then((data) => {
-          for (let key in data) {
-            writeData('posts', data[key]);
-          }
-        });
+        clearAllData('posts')
+          .then(() => clonedRes.json())
+          .then((data) => {
+            for (let key in data) {
+              writeData('posts', data[key]);
+            }
+          });
+
         return res;
       })
     );

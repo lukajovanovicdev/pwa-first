@@ -18,3 +18,11 @@ const readAllData = (storeName) =>
     const store = tx.objectStore(storeName);
     return store.getAll();
   });
+
+const clearAllData = (storeName) =>
+  dbPromise.then((db) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    store.clear();
+    return tx.complete;
+  });
