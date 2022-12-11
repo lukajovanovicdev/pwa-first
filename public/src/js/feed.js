@@ -20,6 +20,12 @@ function openCreatePostModal() {
 
     deferredPrompt = null;
   }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => registration.unregister());
+    });
+  }
 }
 
 function closeCreatePostModal() {
