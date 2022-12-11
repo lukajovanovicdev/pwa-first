@@ -58,7 +58,7 @@ const isInArray = (string, array) => {
 
 // Cache then Network & dynamic caching with offline support
 self.addEventListener('fetch', (e) => {
-  const url = 'https://httpbin.org/get';
+  const url = 'https://progressive-apps-8315a-default-rtdb.firebaseio.com/posts';
 
   if (e.request.url.indexOf(url) > -1) {
     e.respondWith(
