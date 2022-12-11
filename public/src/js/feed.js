@@ -85,36 +85,40 @@ const updateUI = (data) => {
 };
 
 const url = 'https://progressive-apps-8315a-default-rtdb.firebaseio.com/posts.json';
-let networkDataReceived = false;
 
 fetch(url)
   .then((res) => res.json())
   .then((data) => {
-    networkDataReceived = true;
     console.log('from web', data);
 
     let dataArray = [];
     for (let key in data) {
       dataArray.push(data[key]);
     }
-
     updateUI(dataArray);
+  })
+  .catch((err) => {
+    if ('indexedDB' in window) {
+      readAllData('posts').then((data) => {
+        updateUI(data);
+      });
+    }
   });
 
-if ('caches' in window) {
-  caches
-    .match(url)
-    .then((res) => {
-      if (res) return res.json();
-    })
-    .then((data) => {
-      console.log('from cache', data);
-      if (!networkDataReceived) {
-        let dataArray = [];
-        for (let key in data) {
-          dataArray.push(data[key]);
-        }
-        updateUI(dataArray);
-      }
-    });
-}
+// if ('caches' in window) {
+//   caches
+//     .match(url)
+//     .then((res) => {
+//       if (res) return res.json();
+//     })
+//     .then((data) => {
+//       console.log('from cache', data);
+//       if (!networkDataReceived) {
+//         let dataArray = [];
+//         for (let key in data) {
+//           dataArray.push(data[key]);
+//         }
+//         updateUI(dataArray);
+//       }
+//     });
+// }
