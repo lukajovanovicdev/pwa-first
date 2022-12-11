@@ -9,7 +9,7 @@ const STATIC_FILES = [
   '/src/js/material.min.js',
   'src/css/app.css',
   'src/css/feed.css',
-  'src/images/main-image.jpg',
+  'src/images/head.jpg',
   'https://fonts.googleapis.com/css?family=Roboto:400,700',
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css',
@@ -76,8 +76,11 @@ self.addEventListener('fetch', (e) => {
             })
             .catch((error) => {
               return caches.open(CACHE_STATIC_NAME).then((cache) => {
-                if (e.request.url.indexOf('/help')) {
+                if (e.request.headers.get('accept').includes('text/html')) {
                   return cache.match('/offline.html');
+                }
+                if (e.request.headers.get('accept').includes('image/')) {
+                  return cache.match('src/images/head.jpg');
                 }
               });
             });
