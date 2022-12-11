@@ -1,4 +1,6 @@
-const CACHE_STATIC_NAME = 'static-v3';
+importScripts('/src/js/idb.js');
+
+const CACHE_STATIC_NAME = 'static-v1';
 const CACHE_DYNAMIC_NAME = 'dynamic-v2';
 const STATIC_FILES = [
   '/',
@@ -7,13 +9,20 @@ const STATIC_FILES = [
   '/src/js/app.js',
   '/src/js/feed.js',
   '/src/js/material.min.js',
-  'src/css/app.css',
-  'src/css/feed.css',
-  'src/images/head.jpg',
+  '/src/css/app.css',
+  '/src/css/feed.css',
+  '/src/js/idb.js',
+  '/src/images/head.jpg',
   'https://fonts.googleapis.com/css?family=Roboto:400,700',
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css',
 ];
+
+const dbPromise = idb.open('feed-store', 1, (db) => {
+  if (!db.objectStoreNames.contains('posts')) {
+    db.createObjectStore('posts', { keyPath: 'id' });
+  }
+});
 
 // const trimCache = (cacheName, maxItems) => {
 //   caches.open(cacheName).then((cache) =>
@@ -62,13 +71,21 @@ self.addEventListener('fetch', (e) => {
 
   if (e.request.url.indexOf(url) > -1) {
     e.respondWith(
-      caches.open(CACHE_DYNAMIC_NAME).then((cache) =>
-        fetch(e.request).then((res) => {
-          // trimCache(CACHE_DYNAMIC_NAME, 3);
-          cache.put(e.request, res.clone());
-          return res;
-        })
-      )
+      fetch(e.request).then((res) => {
+        // trimCache(CACHE_DYNAMIC_NAME, 3);
+        const clonedRes = res.clone();
+        clonedRes.json().then((data) => {
+          for (let key in data) {
+            dbPromise.then((db) => {
+              const tx = db.transaction('posts', 'readwrite');
+              const store = tx.objectStore('posts');
+              store.put(data[key]);
+              return tx.complete;
+            });
+          }
+        });
+        return res;
+      })
     );
   } else if (isInArray(e.request.url, STATIC_FILES)) {
     e.respondWith(caches.match(e.request));
