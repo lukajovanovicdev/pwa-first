@@ -42,6 +42,10 @@ self.addEventListener('activate', (e) => {
   return self.clients.claim();
 });
 
+const isInArray = (string, array) => {
+  return !!array.find((e) => string === e);
+};
+
 // Cache then Network & dynamic caching with offline support
 self.addEventListener('fetch', (e) => {
   const url = 'https://httpbin.org/get';
@@ -55,7 +59,7 @@ self.addEventListener('fetch', (e) => {
         })
       )
     );
-  } else if (new RegExp('\\b' + STATIC_FILES.join('\\b|\\b') + '\\b').test(e.request.url)) {
+  } else if (isInArray(e.request.url, STATIC_FILES)) {
     e.respondWith(caches.match(e.request));
   } else {
     e.respondWith(
