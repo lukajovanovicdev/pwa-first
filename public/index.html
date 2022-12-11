@@ -108,7 +108,16 @@
               </div>
             </form>
           </div>
-          <img src="/src/images/head.jpg" alt="Explore the City" class="main-image" />
+          <img
+            src="/src/images/head.jpg"
+            srcset="
+              /src/images/head-lg.jpg 1200w,
+              /src/images/head.jpg     900w,
+              /src/images/head-sm.jpg  480w
+            "
+            alt="Explore the City"
+            class="main-image"
+          />
           <div class="page-content">
             <h5 class="text-center mdl-color-text--primary">Share your Moments</h5>
             <div id="shared-moments"></div>
