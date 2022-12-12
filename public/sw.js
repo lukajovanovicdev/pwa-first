@@ -1,7 +1,7 @@
 importScripts('/src/js/idb.js');
 importScripts('/src/js/utility.js');
 
-const CACHE_STATIC_NAME = 'static-v3';
+const CACHE_STATIC_NAME = 'static-v1';
 const CACHE_DYNAMIC_NAME = 'dynamic-v2';
 const STATIC_FILES = [
   '/',
@@ -157,3 +157,36 @@ self.addEventListener('fetch', (e) => {
 //       .catch((err) => caches.match(e.request))
 //   );
 // });
+
+self.addEventListener('sync', (e) => {
+  console.log('[SW] Background syncing...', e);
+  if (e.tag === 'sync-new-posts') {
+    console.log('[SW] Syncing new posts...');
+    e.waitUntil(
+      readAllData('sync-posts').then((data) => {
+        for (let dt of data) {
+          fetch('https://progressive-apps-8315a-default-rtdb.firebaseio.com/posts.json', {
+            method: 'POST',
+            body: JSON.stringify({
+              id: dt.id,
+              image:
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/640px-Image_created_with_a_mobile_phone.png',
+              location: dt.location,
+              title: dt.title,
+            }),
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          })
+            .then((res) => {
+              console.log('sent data', res);
+              if (res.ok) {
+                deleteItemFromData('sync-posts', dt.id);
+              }
+            })
+            .catch((err) => {
+              console.log('Error while sending data...', err);
+            });
+        }
+      })
+    );
+  }
+});

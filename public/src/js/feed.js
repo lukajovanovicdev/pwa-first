@@ -2,6 +2,9 @@ const shareImageButton = document.querySelector('#share-image-button');
 const createPostArea = document.querySelector('#create-post');
 const closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 const sharedMomentsArea = document.querySelector('#shared-moments');
+const form = document.querySelector('form');
+const titleInput = document.querySelector('#title');
+const locationInput = document.querySelector('#location');
 
 const openCreatePostModal = () => {
   createPostArea.style.display = 'block';
@@ -11,7 +14,7 @@ const openCreatePostModal = () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
-    deferredPrompt.userChoice.then(function (choiceResult) {
+    deferredPrompt.userChoice.then((choiceResult) => {
       console.log(choiceResult.outcome);
 
       if (choiceResult.outcome === 'dismissed') {
@@ -24,11 +27,11 @@ const openCreatePostModal = () => {
     deferredPrompt = null;
   }
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => registration.unregister());
-    });
-  }
+  // if ('serviceWorker' in navigator) {
+  //   navigator.serviceWorker.getRegistrations().then((registrations) => {
+  //     registrations.forEach((registration) => registration.unregister());
+  //   });
+  // }
 };
 
 const closeCreatePostModal = () => {
@@ -106,6 +109,58 @@ fetch(url)
       });
     }
   });
+
+const sendData = () => {
+  fetch('https://progressive-apps-8315a-default-rtdb.firebaseio.com/posts.json', {
+    method: 'POST',
+    body: JSON.stringify({
+      id: new Date().toISOString(),
+      image:
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/640px-Image_created_with_a_mobile_phone.png',
+      location: locationInput.value,
+      title: titleInput.value,
+    }),
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+  }).then((res) => {
+    console.log('sent data', res);
+    updateUI();
+  });
+};
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  if (titleInput.value.trim() === '' || titleInput.value.trim() === '') {
+    alert('Please enter a valid data');
+    return;
+  }
+
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then((sw) => {
+      const post = {
+        id: new Date().toISOString(),
+        title: titleInput.value,
+        location: locationInput.value,
+      };
+      writeData('sync-posts', post)
+        .then(() => {
+          sw.sync.register('sync-new-posts');
+        })
+        .then(() => {
+          const snackbar = document.querySelector('#confirmation-toast');
+          const data = { message: 'Your post was saved successfully for syncing' };
+          snackbar.MaterialSnackbar.showSnackbar(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+  } else {
+    sendData();
+  }
+
+  closeCreatePostModal();
+});
 
 // if ('caches' in window) {
 //   caches
